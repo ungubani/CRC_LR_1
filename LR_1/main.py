@@ -1,5 +1,7 @@
-import symmetrical_channel
 import coder
+import symmetrical_channel
+
+from matplotlib import pyplot as plt
 from typing import List
 import math
 import random
@@ -24,7 +26,7 @@ def message_random_generator(length: int, probability: float = 0.5) -> List[int]
 
 if __name__ == "__main__":
     _GENERATING_POLYNOMIAL = [1, 0, 1, 1]  # Порождающий многочлен
-    _Pe_BIT = 0.5  # Вероятность ошибки на бит
+    _Pe_BIT = 0.01  # Вероятность ошибки на бит
 
     epsilon = 0.01  # 0.01 - 22500 экспериментов; 0.005 - 90000 экспериментов
     numbers_experiments = math.ceil(9 / (4 * epsilon ** 2))
@@ -67,5 +69,16 @@ if __name__ == "__main__":
         pe = decoder_error_counter / numbers_experiments  # Вероятность ошибки декодирования
         pe_values.append(pe)
 
-    print("Длины кодируемых последовательностей:", lengths)
-    print("Вероятности ошибки декодирования:", pe_values)
+    # print("Длины кодируемых последовательностей:", lengths)
+    # print("Вероятности ошибки декодирования:", pe_values)
+
+    plt.figure(figsize=(12, 8))
+    plt.semilogy(lengths, pe_values, marker=".", label=f"Pe (СК без памяти, Pb = {_Pe_BIT})")
+
+    plt.title(f"Вероятность ошибки декодирования CRC-{coder.degree_polynomial(_GENERATING_POLYNOMIAL)}")
+    plt.xlabel("Длина кодируемой последовательности")
+    plt.ylabel("Pe")
+
+    plt.legend()
+    plt.grid()
+    plt.show()
