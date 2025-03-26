@@ -2,7 +2,7 @@ from typing import List
 import random
 
 
-def errors_vector_generator(length: int, probability: float) -> List[int]:
+def symmetrical_channel_errors_vector_generator(length: int, probability: float) -> List[int]:
     errors = []
 
     for i in range(length):
