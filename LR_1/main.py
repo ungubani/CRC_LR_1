@@ -1,7 +1,10 @@
-import symmetrical_channel
 import coder
+import symmetrical_channel
+
+from matplotlib import pyplot as plt
 from typing import List
 import math
+import numpy as np
 import random
 
 
@@ -23,49 +26,53 @@ def message_random_generator(length: int, probability: float = 0.5) -> List[int]
 
 
 if __name__ == "__main__":
-    _GENERATING_POLYNOMIAL = [1, 0, 1, 1]  # Порождающий многочлен
-    _Pe_BIT = 0.5  # Вероятность ошибки на бит
+    _GENERATING_POLYNOMIAL = [1, 1, 0, 1]  # Порождающий многочлен (младший индекс соответствует младшей степени)
+    _Pe_BIT = np.linspace(0, 1, 11)  # Вероятности ошибки на бит (избегаем 0)
 
-    epsilon = 0.01  # 0.01 - 22500 экспериментов; 0.005 - 90000 экспериментов
+    epsilon = 0.005  # 0.01 - 22500 экспериментов; 0.005 - 90000 экспериментов
     numbers_experiments = math.ceil(9 / (4 * epsilon ** 2))
     print(f"Точность = {epsilon}, количество экспериментов = {numbers_experiments}")
 
-    lengths = [i for i in range(2, 21, 2)]  # Длина кодируемой последовательности
-    pe_values = []  # Здесь будет накопление данных о вероятности ошибки декодирования
+    lengths = [3, 4, 6]  # Длина кодируемой последовательности
+
+    plt.figure(figsize=(12, 8))
 
     for length in lengths:
         print(f"Обрабатывается длина сообщения {length}")
-        decoder_error_counter = 0  # Количество ошибок декодирования
+        pe_values = []  # Сброс списка для текущей длины
 
-        for _ in range(numbers_experiments):
-            # Источник
-            source_message = message_random_generator(length)
+        for pe in _Pe_BIT:
+            decoder_error_counter = 0  # Количество ошибок декодирования
 
-            # Кодер
-            code_word = coder.encode(source_message, _GENERATING_POLYNOMIAL)
+            for _ in range(numbers_experiments):
+                # Источник
+                source_message = message_random_generator(length)
 
-            # Канальный уровень
-            errors = symmetrical_channel.errors_vector_generator(len(code_word), _Pe_BIT)
-            channel_has_errors = has_errors(errors)
-            channel_word = symmetrical_channel.adding_errors(code_word, errors)
+                # Кодер
+                code_word = coder.encode(source_message, _GENERATING_POLYNOMIAL)
 
-            # Декодер
-            decoder_message, decoder_decision = coder.decoder(channel_word, _GENERATING_POLYNOMIAL)
+                # Канальный уровень
+                errors = symmetrical_channel.errors_vector_generator(len(code_word), pe)
+                channel_has_errors = has_errors(errors)
+                channel_word = symmetrical_channel.adding_errors(code_word, errors)
 
-            if decoder_decision != channel_has_errors:
-                # print(f"source_message= {source_message}\n"
-                #       f"code_word= {code_word}\n"
-                #       f"errors= {errors}\n"
-                #       f"channel_has_errors= {channel_has_errors}\n"
-                #       f"channel_word= {channel_word}\n"
-                #       f"decoder_message= {decoder_message}\n"
-                #       f"decoder_decision= {decoder_decision}\n")
-                #
-                # input()  # Для "остановки"
-                decoder_error_counter += 1
+                # Декодер
+                decoder_message, decoder_decision = coder.decoder(channel_word, _GENERATING_POLYNOMIAL)
 
-        pe = decoder_error_counter / numbers_experiments  # Вероятность ошибки декодирования
-        pe_values.append(pe)
+                if decoder_decision != channel_has_errors:
+                    decoder_error_counter += 1
 
-    print("Длины кодируемых последовательностей:", lengths)
-    print("Вероятности ошибки декодирования:", pe_values)
+            pe_value = decoder_error_counter / numbers_experiments  # Вероятность ошибки декодирования
+            pe_values.append(pe_value)
+
+        plt.plot(_Pe_BIT, pe_values, marker=".", label=f"Длина = {length}")
+
+    # plt.yscale("log")
+    plt.title(f"Вероятность ошибки декодирования CRC-{coder.degree_polynomial(_GENERATING_POLYNOMIAL)}")
+    plt.xlabel("Вероятность ошибки на бит (Pe)")
+    plt.ylabel("Вероятность ошибки декодирования (Pe)")
+
+    plt.legend()
+    plt.grid()
+    plt.show()
+

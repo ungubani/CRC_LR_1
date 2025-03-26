@@ -34,6 +34,12 @@ class TestCalculateRemainder(unittest.TestCase):
         expected_remainder = [0, 0]
         self.assertEqual(remainder_polynomials(divisible, divider), expected_remainder)
 
+
+    def test_radi_testa(self):
+        divisible = [0, 0, 0, 0, 0, 0, 0, 1]
+        divider = [1, 1, 0, 1]
+        expected_remainder = [1, 0, 0]
+        self.assertEqual(remainder_polynomials(divisible, divider), expected_remainder)
     # def test_single_bit_division(self):
     #     divisible = [1]
     #     divider = [1]
