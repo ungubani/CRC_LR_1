@@ -33,7 +33,7 @@ if __name__ == "__main__":
     numbers_experiments = math.ceil(9 / (4 * epsilon ** 2))
     print(f"Точность = {epsilon}, количество экспериментов = {numbers_experiments}")
 
-    lengths = [3, 4, 6]  # Длина кодируемой последовательности
+    lengths = [3, 4, 6, 11, 29]  # Длина кодируемой последовательности
 
     plt.figure(figsize=(12, 8))
 
@@ -66,11 +66,12 @@ if __name__ == "__main__":
             pe_values.append(pe_value)
 
         plt.plot(_Pe_BIT, pe_values, marker=".", label=f"Длина = {length}")
+        # print(pe_values.index(max(pe_values)))
 
     # plt.yscale("log")
     plt.title(f"Вероятность ошибки декодирования CRC-{coder.degree_polynomial(_GENERATING_POLYNOMIAL)}")
-    plt.xlabel("Вероятность ошибки на бит (Pe)")
-    plt.ylabel("Вероятность ошибки декодирования (Pe)")
+    plt.xlabel("Вероятность ошибки на бит p")
+    plt.ylabel("Вероятность ошибки декодирования Pe")
 
     plt.legend()
     plt.grid()
