@@ -57,7 +57,7 @@ if __name__ == "__main__":
     numbers_experiments = math.ceil(9 / (4 * epsilon ** 2))
     print(f"Точность = {epsilon}, количество экспериментов = {numbers_experiments}")
 
-    lengths = [3, 4, 6]  # Длина кодируемой последовательности
+    lengths = [3, 4, 6, 11, 29]  # Длина кодируемой последовательности
 
     plt.figure(figsize=(12, 8))
 
@@ -76,13 +76,14 @@ if __name__ == "__main__":
             pe_decoder_asymmetrical = pe_decoder_imitation(numbers_experiments, pe_bit, channel_mode="A")
             pe_decoder_values_asymmetrical.append(pe_decoder_asymmetrical)
 
+
         plt.plot(_Pe_BIT, pe_decoder_values_symmetrical, marker='o', linestyle='-', label=f"Симметричный, длина = {length}")
         plt.plot(_Pe_BIT, pe_decoder_values_asymmetrical, marker='x', linestyle='--', label=f"Асимметричный, длина = {length}")
         # plt.plot(_Pe_BIT, pe_decoder_theor, marker='+', linestyle=':', label=f"Асимм. теоретич, длина = {length}")
 
     plt.title(f"Вероятность ошибки декодирования CRC-{coder.degree_polynomial(_GENERATING_POLYNOMIAL)}")
-    plt.xlabel("Вероятность ошибки на бит (Pe)")
-    plt.ylabel("Вероятность ошибки декодирования (Pe)")
+    plt.xlabel("Вероятность ошибки на бит p")
+    plt.ylabel("Вероятность ошибки декодирования Pe")
 
     plt.legend()
     plt.grid()
