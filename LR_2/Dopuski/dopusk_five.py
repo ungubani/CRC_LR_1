@@ -1,3 +1,7 @@
+"""
+2.5. Моделирование алгоритма с возвратом
+"""
+
 import random
 import matplotlib.pyplot as plt
 
