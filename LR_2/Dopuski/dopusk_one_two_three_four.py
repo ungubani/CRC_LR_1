@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+from LR_2.virtual_channels.vch_ETA import effiency_channel
+
 
 def wait_algo_cycle(number_package, tau, p_forw, p_back=0, max_N=10**7):
     ack_timeline = []  # История принятых квитанций на стороне источника
@@ -74,114 +76,134 @@ def wait_algo(K, tau, p_forw, p_back=0, max_N=10**7):
     return timeline, source_timeline, ack_timeline
 
 
-def plot_avg_transmissions_2_1(K=100, tau=3, samples=20):
-    p_vals = np.linspace(0.01, 0.99, samples)
-    N_avg_vals = []
 
-    for p_forw in p_vals:
-        print(p_forw)
-        _, source_timeline, _ = wait_algo(K, tau, p_forw)
-        total_sent = sum(1 for s in source_timeline if s is not None)
-        N_avg = total_sent / K
-        N_avg_vals.append(N_avg)
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(p_vals, N_avg_vals, marker='o', color='blue', label='N_ср(p_forw)')
-    plt.xlabel('Вероятность ошибки в прямом канале (p_forw)')
-    plt.ylabel('Среднее число передач N_ср')
-    plt.title('2.1. Среднее число передач при ожидании (p_back=0)')
-    plt.grid(True)
-    plt.legend()
-    plt.show()
-
-
-plot_avg_transmissions_2_1()
-
-
-def compute_avg_transmissions_limited(K, tau, p_values, max_N):
+def compute_avg_N(K, tau, p_values, max_N=10**7, p_back=0):
     avg_transmissions = []
 
     for p_forw in p_values:
-        timeline, source_timeline, _ = wait_algo(K, tau, p_forw, p_back=0, max_N=max_N)
+        timeline, source_timeline, _ = wait_algo(K, tau, p_forw, p_back=p_back, max_N=max_N)
         num_transmissions = sum(1 for x in source_timeline if x is not None)
         avg = num_transmissions / K
         avg_transmissions.append(avg)
 
     return avg_transmissions
 
-def plot_avg_transmissions_vs_p_limited():
-    K = 100
-    tau = 3
-    max_N = 8  # Ограничение на число повторных попыток
-    p_values = np.linspace(0, 0.9, 10)
 
-    avg_transmissions = compute_avg_transmissions_limited(K, tau, p_values, max_N)
+def plot_avg_N_2_1_nonlimited(K=100, tau=3, p_values=np.linspace(0.01,0.99,20)):
+    """
+    2.1. Нахождение среднего числа передач в алгоритме
+    с ожиданием при ___неограниченном___ числе повторных передач
+    """
+    N_avg_vals = compute_avg_N(K, tau, p_values)
 
-    plt.figure(figsize=(8, 5))
-    plt.plot(p_values, avg_transmissions, marker='s', color='orange', label=f'N_ср (max_N={max_N})')
-    plt.title(f'2.2 Среднее число передач N_ср(p), ограничение max_N={max_N}')
-    plt.xlabel('Вероятность ошибки в прямом канале (p)')
-    plt.ylabel('Среднее число передач N_ср')
+    plt.figure(figsize=(10, 6))
+    plt.plot(p_values, N_avg_vals, marker='o', label=f'$N_{{ср}}$($p_{{forw}}$)')
+    plt.plot(p_values, [1 / (1 - p) for p in p_values], linestyle=":", marker="+", label=f"$N_{{теор}}$")
+
+    plt.xlabel(f'$p_{{forw}}$')
+    plt.ylabel(f'$N_{{ср}}($p_{{forw}}$)$')
+    plt.title(f'2.1 Алгоритм с ожиданием, n=$\infty$. '
+              f'\nСреднее число передач ($p_{{back}}$=0)')
     plt.grid(True)
     plt.legend()
     plt.show()
 
-# Вызов построения графика для 2.2
-plot_avg_transmissions_vs_p_limited()
 
+def plot_avg_N_2_2_limited(K=100, tau=3, max_N=8, p_values=np.linspace(0,0.99,20)):
+    """
+    2.2. Нахождение среднего числа передач в алгоритме
+    с ожиданием при ___ограниченном___ числе повторных передач
+    """
+    avg_transmissions = compute_avg_N(K, tau, p_values, max_N)
 
-def plot_time_diagrams_and_efficiency(K, p_forw=0.2, p_back=0.6, taus=[1, 3, 5]):
-    plt.figure(figsize=(15, 5 * len(taus)))
-
-    efficiencies = []
-
-    for idx, tau in enumerate(taus):
-        timeline, source_timeline, ack_timeline = wait_algo(K, tau, p_forw, p_back)
-
-        # Расчёт коэффициента использования канала
-        eta = K / len(timeline)
-        efficiencies.append((tau, eta))
-
-        # Построение графика с использованием bins (subplot из двух графиков)
-        ax1 = plt.subplot(len(taus), 2, 2 * idx + 1)
-        ax1.set_title(f'Передача сообщений (tau={tau})')
-        ax1.plot(timeline, [x if x is not None else 0 for x in source_timeline],
-                 drawstyle='steps-post', color='blue', label='source_timeline')
-        ax1.set_ylabel('Номер пакета')
-        ax1.set_xlabel('Время')
-        ax1.grid(True)
-        ax1.legend()
-
-        ax2 = plt.subplot(len(taus), 2, 2 * idx + 2)
-        ax2.set_title(f'Квитанции (tau={tau})')
-        ax2.plot(timeline, [x if x is not None else 0 for x in ack_timeline],
-                 drawstyle='steps-post', color='green', label='ack_timeline')
-        ax2.set_ylabel('ACK статус')
-        ax2.set_xlabel('Время')
-        ax2.set_yticks([0, 1, 2, 3])
-        ax2.set_yticklabels(['None', '-', '+-', '+'])
-        ax2.grid(True)
-        ax2.legend()
-
-    plt.tight_layout()
+    plt.figure(figsize=(8, 5))
+    plt.plot(p_values, avg_transmissions, marker='o', label=f'$N_{{ср}}$(p, $max_N$={max_N})')
+    plt.plot(p_values, [(1 - p ** max_N) / (1 - p) for p in p_values], marker="+",
+             label=f"$N_{{ср}}$(p, $max_N={max_N}$) - теория", linestyle=":")
+    plt.title(f'2.2 Алгоритм с ожиданием, ограничение n повторных передач. '
+              f'\nСреднее число передач ($p_{{back}}$=0)')
+    plt.xlabel(f'$p_{{forw}}$')
+    plt.ylabel(f'$N_{{ср}}$')
+    plt.grid(True)
+    plt.legend()
     plt.show()
 
-    # График коэффициента использования
+
+def plot_avg_N_2_3_nonlimited(K=100, tau=3, p_values=np.linspace(0,0.99,20),
+                              p_back_list=np.linspace(0,0.9,3)):
+    """
+    2.3. Нахождение среднего числа передач в алгоритме
+    с ожиданием при наличии ошибок в обратном канале
+    при ___неограниченном___ числе повторных передач
+    """
+
+    plt.figure(figsize=(10, 6))
+    for p_back in p_back_list:
+        N_avg_vals = compute_avg_N(K, tau, p_values, p_back=p_back)
+        plt.plot(p_values, N_avg_vals, marker='o', label=f'$N_{{ср}}$($p_{{forw}}$, $p_{{back}}$={p_back})')
+        plt.plot(p_values, [1 / ((1 - p) * (1 - p_back)) for p in p_values],
+                 linestyle=":", marker="+", label=f"$N_{{теор}}$($p_{{forw}}$, $p_{{back}}={p_back}$)")
+
+    plt.xlabel(f'$p_{{forw}}$')
+    plt.ylabel(f'$N_{{ср}}$')
+    plt.title(f'Алгоритм с ожиданием, n=$\infty$. '
+              f'\nСреднее число передач ($p_{{back}}\\neq0$)')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
+def plot_avg_N_2_3_limited(K=100, tau=3, p_values=np.linspace(0,0.99,20), max_N=8,
+                           p_back_list=np.linspace(0,0.9,3)):
+    """
+    2.3. Нахождение среднего числа передач в алгоритме
+    с ожиданием при наличии ошибок в обратном канале
+    при ___ограниченном___ числе повторных передач
+    """
+
+    plt.figure(figsize=(10, 6))
+    for p_back in p_back_list:
+        N_avg_vals = compute_avg_N(K=K, tau=tau, p_values=p_values, max_N=max_N, p_back=p_back)
+        plt.plot(p_values, N_avg_vals, marker='o', label=f'$N_{{ср}}$($p_{{forw}}$, p_back={p_back})')
+        plt.plot(p_values, [(1 - (p + p_back - p * p_back) ** max_N) /
+                            ((1 - p) * (1 - p_back)) for p in p_values],
+                 linestyle=":", marker="+", label=f"$N_{{теор}}($p_{{forw}}$, p_back={p_back})$")
+
+    plt.xlabel(f'$p_{{forw}}$')
+    plt.ylabel(f'$N_{{ср}}$')
+    plt.title(f'Алгоритм с ожиданием, n={{$\infty$}}. '
+              f'\nСреднее число передач ($p_{{back}}\\neq0$)')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+
+
+def plot_efficiency_2_4_nonlimited(K=500, p_forw=0.2, taus=[1, 2, 3, 4, 5]):
+    efficiencies = []
+    efficiencies_theor = []
+
+    for idx, tau in enumerate(taus):
+        timeline, source_timeline, ack_timeline = wait_algo(K, tau, p_forw)
+
+        eta = K / len(timeline)
+        efficiencies.append((tau, eta))
+        efficiencies_theor.append((tau, (1 - p_forw) / (1 + tau)))
+
     plt.figure(figsize=(8, 4))
     taus_list, eta_list = zip(*efficiencies)
-    plt.plot(taus_list, eta_list, marker='o', color='purple')
+    taus_list, eta_list_theor = zip(*efficiencies_theor)
+
+    plt.plot(taus_list, eta_list, marker='o')
+    plt.plot(taus_list, eta_list_theor, linestyle=":", marker='+')
     plt.title('Коэффициент использования канала η(τ)')
     plt.xlabel('Задержка квитанции τ')
-    plt.ylabel('η = K / len(timeline)')
+    plt.ylabel('$\eta$()')
     plt.grid(True)
     plt.show()
 
 
-# Вызов функции для построения графиков по пункту 2.4
-plot_time_diagrams_and_efficiency(K=50, taus=[1, 3, 5, 7], p_forw=0.2, p_back=0.6)
-
-
-def plot_24_my(K=50, tau=3, p_forw=0.2, p_back=0.6):
+def plot_diagram_2_4(K=50, tau=3, p_forw=0.2, p_back=0.1):
     timeline, source_timeline, ack_timeline = wait_algo(K, tau, p_forw, p_back)
 
     packages = plt.subplot(2, 1, 1)
@@ -202,4 +224,15 @@ def plot_24_my(K=50, tau=3, p_forw=0.2, p_back=0.6):
 
     plt.show()
 
-plot_24_my()
+
+
+
+
+if __name__ == "__main__":
+    # plot_avg_N_2_1_nonlimited()
+    # plot_avg_N_2_2_limited()
+    # plot_avg_N_2_3_nonlimited()
+    # plot_avg_N_2_3_limited()
+    # plot_efficiency_2_4_nonlimited()
+    plot_diagram_2_4()
+

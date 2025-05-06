@@ -43,7 +43,7 @@ if __name__ == "__main__":
     p_list_Pconst = [0.1, 0.3, 0.8]
 
     plt.figure()
-    plt.title(f"Эффективность использования канала")
+    plt.title(f"Виртуальные каналы. Эффективность использования канала")
     plt.xlabel(f"$\\tau$")
     plt.ylabel(f"$\eta$(p=const, $\\tau$)")
     plt.ylim([0, 1])
@@ -62,14 +62,13 @@ if __name__ == "__main__":
     p_list_TAUconst = np.linspace(0, 0.98, 11)
 
     plt.figure()
-    plt.title(f"Эффективность использования канала")
+    plt.title(f"Виртуальные каналы. Эффективность использования канала")
     plt.xlabel(f"$\\tau$")
     plt.ylabel(f"$\eta$(p, $\\tau$=const)")
     plt.ylim([0, 1])
 
     for tau in tau_list_TAUconst:
         print(f"tau=const, tau={tau}")
-        # print([effiency_channel(p, tau, COUNT_MESSAGES) for tau in tau_list_TAUconst])
         efficiency_list = [effiency_channel(p, tau) for p in p_list_TAUconst]
         plt.plot(p_list_TAUconst, efficiency_list, label=f"$\\tau$={tau}", marker="o")
 
