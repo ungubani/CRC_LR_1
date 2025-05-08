@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-def effiency_channel(p, tau, count_messages= 10_000):
+def effiency_channel(p=None, tau=None, count_messages=10_000):
     need_deliver_messages = count_messages
 
     TOTAL_TIME = 0
