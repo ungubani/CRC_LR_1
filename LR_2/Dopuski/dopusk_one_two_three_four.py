@@ -146,7 +146,7 @@ def plot_avg_N_2_3_nonlimited(K=100, tau=3, p_values=np.linspace(0,0.99,20),
 
     plt.xlabel(f'$p_{{forw}}$')
     plt.ylabel(f'$N_{{ср}}$')
-    plt.title(f'Алгоритм с ожиданием, n=$\infty$. '
+    plt.title(f'2.3 Алгоритм с ожиданием, n=$\infty$. '
               f'\nСреднее число передач ($p_{{back}}\\neq0$)')
     plt.grid(True)
     plt.legend()
@@ -171,7 +171,7 @@ def plot_avg_N_2_3_limited(K=100, tau=3, p_values=np.linspace(0,0.99,20), max_N=
 
     plt.xlabel(f'$p_{{forw}}$')
     plt.ylabel(f'$N_{{ср}}$')
-    plt.title(f'Алгоритм с ожиданием, n={{$\infty$}}. '
+    plt.title(f'2.3 Алгоритм с ожиданием, n={{$\infty$}}. '
               f'\nСреднее число передач ($p_{{back}}\\neq0$)')
     plt.grid(True)
     plt.legend()
@@ -196,8 +196,8 @@ def plot_efficiency_2_4_nonlimited(K=500, p_forw=0.2, taus=[1, 2, 3, 4, 5]):
 
     plt.plot(taus_list, eta_list, marker='o')
     plt.plot(taus_list, eta_list_theor, linestyle=":", marker='+')
-    plt.title('Коэффициент использования канала η(τ)')
-    plt.xlabel('Задержка квитанции τ')
+    plt.title(f'2.4 Алгоритм с ожиданием.\nКоэффициент использования канала η($\\tau$)')
+    plt.xlabel('Задержка квитанции $\\tau$')
     plt.ylabel('$\eta$()')
     plt.grid(True)
     plt.show()
@@ -207,14 +207,14 @@ def plot_diagram_2_4(K=50, tau=3, p_forw=0.2, p_back=0.1):
     timeline, source_timeline, ack_timeline = wait_algo(K, tau, p_forw, p_back)
 
     packages = plt.subplot(2, 1, 1)
-    packages.set_title("Передача пакетов")
+    packages.set_title("2.4 Алгоритм с ожиданием. Передача пакетов")
     packages.stem(timeline, source_timeline)
     packages.set_ylabel('Номер пакета')
     packages.set_xlabel('Время')
     packages.grid(True)
 
     ack_status = plt.subplot(2, 1, 2)
-    ack_status.set_title("Полученные квитанции")
+    ack_status.set_title("2.4 Алгоритм с ожиданием. Полученные квитанции")
     ack_status.stem(timeline, ack_timeline)
     ack_status.set_ylabel('ACK статус')
     ack_status.set_xlabel('Время')
@@ -229,10 +229,10 @@ def plot_diagram_2_4(K=50, tau=3, p_forw=0.2, p_back=0.1):
 
 
 if __name__ == "__main__":
-    # plot_avg_N_2_1_nonlimited()
-    # plot_avg_N_2_2_limited()
-    # plot_avg_N_2_3_nonlimited()
-    # plot_avg_N_2_3_limited()
-    # plot_efficiency_2_4_nonlimited()
+    plot_avg_N_2_1_nonlimited()
+    plot_avg_N_2_2_limited()
+    plot_avg_N_2_3_nonlimited()
+    plot_avg_N_2_3_limited()
+    plot_efficiency_2_4_nonlimited()
     plot_diagram_2_4()
 

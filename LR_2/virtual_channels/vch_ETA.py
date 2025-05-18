@@ -39,38 +39,96 @@ def effiency_channel(p=None, tau=None, count_messages=10_000):
 if __name__ == "__main__":
     COUNT_MESSAGES = 50_000
 
-    tau_list_Pconst = [1, 2, 6, 10, 30]
-    p_list_Pconst = [0.1, 0.3, 0.8]
+    # ----------------------------------------
+    # Постоянное значение вероятности ошибки p
+    # ----------------------------------------
 
-    plt.figure()
-    plt.title(f"Виртуальные каналы. Эффективность использования канала")
-    plt.xlabel(f"$\\tau$")
-    plt.ylabel(f"$\eta$(p=const, $\\tau$)")
-    plt.ylim([0, 1])
+    tau_list_Pconst = list(range(1, 31))
+    p_list_Pconst = [0.00001, 0.1, 0.3,  0.8]
+
+    efficiency_lists_Pconst = []
 
     for p in p_list_Pconst:
+        efficiency_lists_Pconst.append([effiency_channel(p, tau, COUNT_MESSAGES) for tau in tau_list_Pconst])
+
+
+    plt.figure()
+    plt.title(f"Эффективность использования канала. \nАлгоритм с виртуальными каналами")
+    plt.xlabel(f"$\\tau$")
+    plt.ylabel(f"$\eta$(p=const, $\\tau$)")
+    plt.ylim([-0.05, 1.05])
+
+    for i, p in enumerate(p_list_Pconst):
         print(f"p=const, p={p}")
-        efficiency_list = [effiency_channel(p, tau) for tau in tau_list_Pconst]
-        plt.plot(tau_list_Pconst, efficiency_list, label=f"p={p}", marker="o")
+        plt.plot(tau_list_Pconst, efficiency_lists_Pconst[i], label=f"p={p}", marker="o")
 
     plt.grid()
     plt.legend()
     plt.show()
 
 
+    # ------------------------------------------------------------
+    # Постоянное значение времени задержки получения квитанции tau
+    # ------------------------------------------------------------
     tau_list_TAUconst = [1, 4, 16]
     p_list_TAUconst = np.linspace(0, 0.98, 11)
 
-    plt.figure()
-    plt.title(f"Виртуальные каналы. Эффективность использования канала")
-    plt.xlabel(f"$\\tau$")
-    plt.ylabel(f"$\eta$(p, $\\tau$=const)")
-    plt.ylim([0, 1])
+    efficiency_lists_TAUconst = []
 
     for tau in tau_list_TAUconst:
+        efficiency_lists_TAUconst.append([effiency_channel(p, tau, COUNT_MESSAGES) for p in p_list_TAUconst])
+
+    plt.figure()
+    plt.title(f"Эффективность использования канала. \nАлгоритм с виртуальными каналами")
+    plt.xlabel(f"p")
+    plt.ylabel(f"$\eta$(p, $\\tau$=const)")
+    # plt.ylim([0, 1])
+
+    for i, tau in enumerate(tau_list_TAUconst):
         print(f"tau=const, tau={tau}")
-        efficiency_list = [effiency_channel(p, tau) for p in p_list_TAUconst]
-        plt.plot(p_list_TAUconst, efficiency_list, label=f"$\\tau$={tau}", marker="o")
+        plt.plot(p_list_TAUconst, efficiency_lists_TAUconst[i], label=f"$\\tau$={tau}", marker="o")
+
+    plt.plot(p_list_TAUconst, [1 - p for p in p_list_TAUconst], label=f"$\eta=(1-p)$", linestyle=":", marker="+")
+
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+    # ----------------------------------
+    # Сравнение с алгоритмом с возвратом
+    # ----------------------------------
+    plt.figure(figsize=(10,7))
+    plt.title(f"Коэффициент использования канала.\nСравнение алгоритма с виртуальными каналами и алгоритма с возвратом")
+    plt.xlabel(f"$\\tau$")
+    plt.ylabel(f"$\eta$(p=const, $\\tau$)")
+    plt.ylim([-0.05, 1.05])
+
+    for i, p in enumerate(p_list_Pconst):
+        print(f"p=const, p={p}")
+        plt.plot(tau_list_Pconst, efficiency_lists_Pconst[i], label=f"А. с вирт. к., p={p}", marker="o")
+
+        plt.plot(tau_list_Pconst, [(1 - p) / (1 + p * tau) for tau in tau_list_Pconst],
+                 label=f"А. с возвратом, p={p}", linestyle="--", marker="x")
+
+    plt.grid()
+    plt.legend()
+    plt.show()
+
+
+
+    plt.figure(figsize=(10,7))
+    plt.title(f"Коэффициент использования канала.\nСравнение алгоритма с виртуальными каналами и алгоритма с возвратом")
+    plt.xlabel(f"p")
+    plt.ylabel(f"$\eta$(p, $\\tau$=const)")
+    # plt.ylim([0, 1])
+
+    for i, tau in enumerate(tau_list_TAUconst):
+        print(f"tau=const, tau={tau}")
+        plt.plot(p_list_TAUconst, efficiency_lists_TAUconst[i], label=f"А. с вирт. к., $\\tau$={tau}", marker="o")
+
+        plt.plot(p_list_TAUconst, [(1 - p) / (1 + p * tau) for p in p_list_TAUconst],
+                 label=f"А. с возвратом, $\\tau$={tau}", linestyle="--", marker="x")
 
     plt.grid()
     plt.legend()
