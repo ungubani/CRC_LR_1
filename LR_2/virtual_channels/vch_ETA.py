@@ -6,14 +6,13 @@ def effiency_channel(p=None, tau=None, count_messages=10_000):
     need_deliver_messages = count_messages
 
     TOTAL_TIME = 0
-    vch_tx_work_status = [False] * (tau + 1)  #
+    vch_tx_work_status = [False] * (tau + 1)
     vch_rx_ack = [True] * (tau + 1)  # Готовность к приему [равно (+) квитанции до этого]
 
     translate_flag = False
 
     step = 0
     while need_deliver_messages > 0 or translate_flag:
-        # print(f"step= {step}")
         step += 1
 
         for i in range(tau + 1):

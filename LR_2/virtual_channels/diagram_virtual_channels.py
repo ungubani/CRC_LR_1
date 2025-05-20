@@ -178,38 +178,46 @@ def virtual_channels(p_list: list, p_back_list: list, count_messages: int) -> (l
     vch_rx_ack = [True] * (tau + 1)  # Готовность к приему [равно (+) квитанции до этого]
 
     translate_flag = False
+    try:
+        while need_deliver_messages > 0 or translate_flag:
+            for i in range(tau + 1):
+                channels[i].extend([None] * (TOTAL_TIME - len(channels[i])))  # Выравнивание канала во времени
+                acknowledgements[i].extend([None] * (TOTAL_TIME + tau + 1 - len(acknowledgements[i])))
 
-    while need_deliver_messages > 0 or translate_flag:
-        for i in range(tau + 1):
-            channels[i].extend([None] * (TOTAL_TIME - len(channels[i])))  # Выравнивание канала во времени
-            acknowledgements[i].extend([None] * (TOTAL_TIME + tau + 1 - len(acknowledgements[i])))
+                TOTAL_TIME += 1
 
-            TOTAL_TIME += 1
+                if need_deliver_messages > 0 and vch_rx_ack[i] == True:
+                    vch_tx_work_status[i] = True
 
-            if need_deliver_messages > 0 and vch_rx_ack[i] == True:
-                vch_tx_work_status[i] = True
-                channels[i].append(1 + need_deliver_messages % (2 * (tau + 1) + 1))
-                need_deliver_messages -= 1
+                    # Как было раньше
+                    # channels[i].append(1 + need_deliver_messages % (2 * (tau + 1) + 1))
 
-            elif need_deliver_messages <= 0 and vch_rx_ack[i] == True:
-                vch_tx_work_status[i] = False
+                    number_package = count_messages - need_deliver_messages + 1
+                    channels[i].append(number_package)
+                    need_deliver_messages -= 1
 
-            else:
-                channels[i].append(channels[i][-(tau + 1)])
+                elif need_deliver_messages <= 0 and vch_rx_ack[i] == True:
+                    vch_tx_work_status[i] = False
 
-            ack = None
-            # Разыгрываем были ли ошибки при передаче сообщения
-            if vch_tx_work_status[i]:
-                ack = False if random.random() < p_list[i] else True
-                # Разыгрываем были ли ошибки при передаче квитанции
+                else:
+                    channels[i].append(channels[i][-(tau + 1)])
 
-                if random.random() < p_back_list[i]:
-                    ack = -1
+                ack = None
+                # Разыгрываем были ли ошибки при передаче сообщения
+                if vch_tx_work_status[i]:
+                    ack = False if random.random() < p_list[i] else True
+                    # Разыгрываем были ли ошибки при передаче квитанции
 
-            acknowledgements[i].append(ack)
-            vch_rx_ack[i] = ack
+                    if random.random() < p_back_list[i]:
+                        ack = -1
 
-        translate_flag = any(vch_tx_work_status)
+                acknowledgements[i].append(ack)
+                vch_rx_ack[i] = ack
+
+            translate_flag = any(vch_tx_work_status)
+
+    except KeyboardInterrupt:
+        return channels, acknowledgements
 
     return channels, acknowledgements
 
@@ -277,7 +285,8 @@ def plot_virtual_channels(p_list, p_back_list, count_messages):
 
 if __name__ == "__main__":
     p_list_example = [0.1, 0.95, 0.2]  # Вероятности для каналов
+    # p_list_example = [0.1, 1, 0.3]
     p_back_list_example = [0.05, 0.3, 0.07]
-    count_messages_example = 100  # Количество сообщений
+    count_messages_example = 50  # Количество сообщений
     plot_virtual_channels(p_list_example, p_back_list_example, count_messages_example)
 
